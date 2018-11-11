@@ -8,10 +8,6 @@
         <param-name>contextConfigLocation</param-name>
         <param-value>classpath:applicationContext.xml</param-value>
     </context-param>
-    <context-param>
-        <param-name/>
-        <param-value/>
-    </context-param>
 
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
@@ -31,10 +27,12 @@
         <servlet-name>dispatcherServlet</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+
     <!-- 设置session时长 -->
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
+
     <!-- 字符编码过滤器 -->
     <filter>
         <filter-name>characterEncodingFilter</filter-name>
@@ -57,6 +55,7 @@
         <filter-name>characterEncodingFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+
     <!-- 使用rest风格的URI 浏览器只能发post get请求，加上这个后可以将浏览器的post get转成delete、put-->
     <filter>
         <filter-name>hiddenHttpMethodFilter</filter-name>
