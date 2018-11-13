@@ -11,7 +11,59 @@
     <script src="${APP_PATH}/static/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
 </head>
 <body>
-
+<!-- 员工添加Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">员工添加</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="inputEmpName" class="col-sm-2 control-label">empName</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="empName" class="form-control" id="inputEmpName"
+                                   placeholder="empName">
+                            <span class="help-block"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputEmpEmail" class="col-sm-2 control-label">email</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="email" class="form-control" id="inputEmpEmail" placeholder="email">
+                            <span class="help-block"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">gender</label>
+                        <div class="col-sm-10">
+                            <label class="radio-inline">
+                                <input type="radio" name="gender" id="inlineRadio1" value="M" checked> 男
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="gender" id="inlineRadio2" value="F"> 女
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">deptName</label>
+                        <div class="col-sm-4">
+                            <select class="form-control" name="dId" id="select_depts">
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="btn_save_emp">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container">
     <div class="row">
         <div class="col-md-12">
@@ -20,7 +72,7 @@
     </div>
     <div class="row">
         <div class="col-md-4 col-md-offset-8">
-            <button class="btn btn-primary">新增</button>
+            <button class="btn btn-primary" id="emp_add_modal_btn">新增</button>
             <button class="btn btn-warning">删除</button>
         </div>
     </div>
@@ -76,10 +128,10 @@
                     </c:if>
                     <c:forEach items="${pageInfo.navigatepageNums}" var="page_nums">
                         <c:if test="${page_nums==pageInfo.pageNum}">
-                            <li class="active"><a href="#" >${page_nums}</a></li>
+                            <li class="active"><a href="#">${page_nums}</a></li>
                         </c:if>
                         <c:if test="${page_nums!=pageInfo.pageNum}">
-                            <li ><a href="${APP_PATH}/emps?pn=${page_nums}" >${page_nums}</a></li>
+                            <li><a href="${APP_PATH}/emps?pn=${page_nums}">${page_nums}</a></li>
                         </c:if>
                     </c:forEach>
                     <c:if test="${pageInfo.hasNextPage}">
@@ -98,5 +150,106 @@
     </div>
 
 </div>
+<script type="text/javascript">
+    function getDepts() {
+        $("#select_depts").empty();
+        $.ajax({
+            url: "${APP_PATH}/depts",
+            type: "GET",
+            success: function (result) {
+                $.each(result.data.depts, function () {
+                    var optionEle = $("<option></option>").append(this.deptName).attr("value", this.deptId);
+                    optionEle.appendTo($("#select_depts"))
+                })
+            }
+        })
+    }
+
+    <!--输入校验-->
+    function validate(){
+        var empName=$("#inputEmpName").val();
+        var regName=/(^[a-zA-Z0-9_-]{3,16}$)|(^[\u2E80-\u9FFF]+$)/;
+        if(!regName.test(empName)){
+            show_validate_msg($("#inputEmpName"),"error","请输入正确的用户名");
+            return false;
+        }else {
+            show_validate_msg($("#inputEmpName"),"success","");
+        }
+        var email=$("#inputEmpEmail").val();
+        var regEmail=/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
+        if(!regEmail.test(email)){
+            show_validate_msg($("#inputEmpEmail"),"error","请输入正确的邮箱");
+            return false;
+        }else {
+            show_validate_msg($("#inputEmpEmail"),"success","");
+        }
+        return true;
+    }
+    function show_validate_msg(element,status,msg){
+        $(element).parent().removeClass("has-success has-error")
+        if("success"==status){
+            $(element).parent().addClass("has-success");
+            $(element).next("span").text(msg);
+        }else if("error"==status){
+            $(element).parent().addClass("has-error");
+            $(element).next("span").text(msg);
+        }
+    }
+
+    function toPage(page) {
+        $.ajax({
+            url: "${APP_PATH}/emps",
+            type: "GET",
+            data: {"pn":page},
+        })
+    }
+
+    <!--点击新增弹出模态框-->
+    $("#emp_add_modal_btn").click(function () {
+        getDepts();
+        $('#myModal').modal({
+            backdrop: "static"
+        })
+    })
+    <!--插入新员工-->
+    $("#btn_save_emp").click(function () {
+        if($(this).attr("name_val")=="error"){
+            return;
+        }
+        if(!validate()){
+            return;
+        }
+        $.ajax({
+            url: "${APP_PATH}/addEmp",
+            type: "POST",
+            data: $("#myModal form").serialize(),
+            success: function (result) {
+                //关闭模块框
+                $('#myModal').modal('hide');
+                <%--<jsp:forward page="${APP_PATH}/emps?pn=9999"/>--%>
+            }
+        })
+    })
+
+    $("#inputEmpName").change(function () {
+        var inputName=this.value;
+        $.ajax({
+            url:"${APP_PATH}/checkEmpName",
+            type:"POST",
+            data:"empName="+inputName,
+            success:function (result) {
+                if(result.code==0){
+                    $("#btn_save_emp").attr("name_val","success");
+                    show_validate_msg($("#inputEmpName"),"success","名字可用");
+                }else {
+                    $("#btn_save_emp").attr("name_val","error");
+                    show_validate_msg($("#inputEmpName"),"error",result.msg);
+                }
+            }
+        })
+    })
+
+
+</script>
 </body>
 </html>
