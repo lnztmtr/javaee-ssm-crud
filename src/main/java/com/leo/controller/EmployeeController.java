@@ -8,10 +8,7 @@ import com.leo.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -59,5 +56,12 @@ public class EmployeeController {
         }else {
             return CommonResult.success();
         }
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/emp/{empId}",method = RequestMethod.GET)
+    public CommonResult getEmp(@PathVariable("empId") Integer  empId){
+        Employee employee=employeeService.getEmp(empId);
+        return CommonResult.success().addData("emp", employee);
     }
 }

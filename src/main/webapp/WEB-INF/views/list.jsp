@@ -64,6 +64,58 @@
         </div>
     </div>
 </div>
+<!-- 员工修改Modal -->
+<div class="modal fade" id="myEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">员工修改</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="inputEmpName" class="col-sm-2 control-label">empName</label>
+                        <div class="col-sm-10">
+                            <p type="text" name="empName" class="form-control-static" id="editEmpName"
+                               placeholder="empName">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputEmpEmail" class="col-sm-2 control-label">email</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="email" class="form-control" id="editEmpEmail" placeholder="email">
+                            <span class="help-block"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">gender</label>
+                        <div class="col-sm-10">
+                            <label class="radio-inline">
+                                <input type="radio" name="gender" id="inlineEditRadio1" value="M" checked> 男
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="gender" id="inlineEditRadio2" value="F"> 女
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">deptName</label>
+                        <div class="col-sm-4">
+                            <select class="form-control" name="dId" id="edit_select_depts">
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="btn_edit_save_emp">编辑</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="container">
     <div class="row">
         <div class="col-md-12">
@@ -78,7 +130,7 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            <table class="table table-hover">
+            <table class="table table-hover" id="table_emps">
                 <tr>
                     <th>#</th>
                     <th>empName</th>
@@ -91,11 +143,11 @@
                     <tr>
                         <th>${emp.empId}</th>
                         <th>${emp.empName}</th>
-                        <th>${emp.gender=="M"?"女":"男"}</th>
+                        <th>${emp.gender=="M"?"男":"女"}</th>
                         <th>${emp.email}</th>
                         <th>${emp.department.deptName}</th>
                         <th>
-                            <button class="btn btn-primary btn-sm">
+                            <button id="btn_edit" class="btn btn-primary btn-sm edit_btn" editEmpId="${emp.empId}">
                                 <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 编辑
                             </button>
@@ -151,46 +203,62 @@
 
 </div>
 <script type="text/javascript">
-    function getDepts() {
-        $("#select_depts").empty();
+    <!--获取部门列表-->
+    function getDepts(ele) {
+        $(ele).empty();
         $.ajax({
             url: "${APP_PATH}/depts",
             type: "GET",
             success: function (result) {
                 $.each(result.data.depts, function () {
                     var optionEle = $("<option></option>").append(this.deptName).attr("value", this.deptId);
-                    optionEle.appendTo($("#select_depts"))
+                    optionEle.appendTo(ele);
                 })
             }
         })
     }
 
+    <!--获取员工信息-->
+    function getEmp(empId) {
+        $.ajax({
+            url: "${APP_PATH}/emp/" + empId,
+            type: "GET",
+            success: function (result) {
+                $("#editEmpName").text(result.data.emp.empName);
+                $("#editEmpEmail").val(result.data.emp.email);
+                $("#myEditModal input[name=gender]").val([result.data.emp.gender]);
+                $("#myEditModal select").val([result.data.emp.dId]);
+            }
+        })
+    }
+
     <!--输入校验-->
-    function validate(){
-        var empName=$("#inputEmpName").val();
-        var regName=/(^[a-zA-Z0-9_-]{3,16}$)|(^[\u2E80-\u9FFF]+$)/;
-        if(!regName.test(empName)){
-            show_validate_msg($("#inputEmpName"),"error","请输入正确的用户名");
+    function validate() {
+        var empName = $("#inputEmpName").val();
+        var regName = /(^[a-zA-Z0-9_-]{3,16}$)|(^[\u2E80-\u9FFF]+$)/;
+        if (!regName.test(empName)) {
+            show_validate_msg($("#inputEmpName"), "error", "请输入正确的用户名");
             return false;
-        }else {
-            show_validate_msg($("#inputEmpName"),"success","");
+        } else {
+            show_validate_msg($("#inputEmpName"), "success", "");
         }
-        var email=$("#inputEmpEmail").val();
-        var regEmail=/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
-        if(!regEmail.test(email)){
-            show_validate_msg($("#inputEmpEmail"),"error","请输入正确的邮箱");
+        var email = $("#inputEmpEmail").val();
+        var regEmail = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
+        if (!regEmail.test(email)) {
+            show_validate_msg($("#inputEmpEmail"), "error", "请输入正确的邮箱");
             return false;
-        }else {
-            show_validate_msg($("#inputEmpEmail"),"success","");
+        } else {
+            show_validate_msg($("#inputEmpEmail"), "success", "");
         }
         return true;
     }
-    function show_validate_msg(element,status,msg){
+
+    function show_validate_msg(element, status, msg) {
         $(element).parent().removeClass("has-success has-error")
-        if("success"==status){
+        if ("success" == status) {
             $(element).parent().addClass("has-success");
             $(element).next("span").text(msg);
-        }else if("error"==status){
+        } else if ("error" == status) {
             $(element).parent().addClass("has-error");
             $(element).next("span").text(msg);
         }
@@ -200,23 +268,23 @@
         $.ajax({
             url: "${APP_PATH}/emps",
             type: "GET",
-            data: {"pn":page},
+            data: {"pn": page},
         })
     }
 
     <!--点击新增弹出模态框-->
     $("#emp_add_modal_btn").click(function () {
-        getDepts();
+        getDepts("#select_depts");
         $('#myModal').modal({
             backdrop: "static"
         })
     })
     <!--插入新员工-->
     $("#btn_save_emp").click(function () {
-        if($(this).attr("name_val")=="error"){
+        if ($(this).attr("name_val") == "error") {
             return;
         }
-        if(!validate()){
+        if (!validate()) {
             return;
         }
         $.ajax({
@@ -232,23 +300,31 @@
     })
 
     $("#inputEmpName").change(function () {
-        var inputName=this.value;
+        var inputName = this.value;
         $.ajax({
-            url:"${APP_PATH}/checkEmpName",
-            type:"POST",
-            data:"empName="+inputName,
-            success:function (result) {
-                if(result.code==0){
-                    $("#btn_save_emp").attr("name_val","success");
-                    show_validate_msg($("#inputEmpName"),"success","名字可用");
-                }else {
-                    $("#btn_save_emp").attr("name_val","error");
-                    show_validate_msg($("#inputEmpName"),"error",result.msg);
+            url: "${APP_PATH}/checkEmpName",
+            type: "POST",
+            data: "empName=" + inputName,
+            success: function (result) {
+                if (result.code == 0) {
+                    $("#btn_save_emp").attr("name_val", "success");
+                    show_validate_msg($("#inputEmpName"), "success", "名字可用");
+                } else {
+                    $("#btn_save_emp").attr("name_val", "error");
+                    show_validate_msg($("#inputEmpName"), "error", result.msg);
                 }
             }
         })
     })
-
+    <!--点击编辑弹出模态框-->
+    $(document).on("click","#btn_edit",function () {
+        getDepts("#edit_select_depts");
+        var empId = $(this).attr("editEmpId");
+        getEmp(empId)
+        $('#myEditModal').modal({
+            backdrop: "static"
+        })
+    })
 
 </script>
 </body>
