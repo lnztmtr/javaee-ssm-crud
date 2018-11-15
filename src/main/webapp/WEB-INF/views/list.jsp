@@ -76,14 +76,14 @@
             <div class="modal-body">
                 <form class="form-horizontal">
                     <div class="form-group">
-                        <label for="inputEmpName" class="col-sm-2 control-label">empName</label>
+                        <label  class="col-sm-2 control-label">empName</label>
                         <div class="col-sm-10">
                             <p type="text" name="empName" class="form-control-static" id="editEmpName"
                                placeholder="empName">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="inputEmpEmail" class="col-sm-2 control-label">email</label>
+                        <label  class="col-sm-2 control-label">email</label>
                         <div class="col-sm-10">
                             <input type="text" name="email" class="form-control" id="editEmpEmail" placeholder="email">
                             <span class="help-block"></span>
@@ -116,6 +116,7 @@
         </div>
     </div>
 </div>
+<!--表格-->
 <div class="container">
     <div class="row">
         <div class="col-md-12">
@@ -125,13 +126,16 @@
     <div class="row">
         <div class="col-md-4 col-md-offset-8">
             <button class="btn btn-primary" id="emp_add_modal_btn">新增</button>
-            <button class="btn btn-warning">删除</button>
+            <button class="btn btn-warning" id="emp_delete_all_btn">删除</button>
         </div>
     </div>
     <div class="row">
         <div class="col-md-12">
             <table class="table table-hover" id="table_emps">
                 <tr>
+                    <th>
+                        <input type="checkbox" id="check_all"/>
+                    </th>
                     <th>#</th>
                     <th>empName</th>
                     <th>gender</th>
@@ -141,21 +145,24 @@
                 </tr>
                 <c:forEach items="${pageInfo.list}" var="emp">
                     <tr>
-                        <th>${emp.empId}</th>
-                        <th>${emp.empName}</th>
-                        <th>${emp.gender=="M"?"男":"女"}</th>
-                        <th>${emp.email}</th>
-                        <th>${emp.department.deptName}</th>
-                        <th>
+                        <td>
+                            <input type="checkbox"  class="check_item" empName="${emp.empName}" empId="${emp.empId}"/>
+                        </td>
+                        <td>${emp.empId}</td>
+                        <td>${emp.empName}</td>
+                        <td>${emp.gender=="M"?"男":"女"}</td>
+                        <td>${emp.email}</td>
+                        <td>${emp.department.deptName}</td>
+                        <td>
                             <button id="btn_edit" class="btn btn-primary btn-sm edit_btn" editEmpId="${emp.empId}">
                                 <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
                                 编辑
                             </button>
-                            <button class="btn btn-warning btn-sm">
+                            <button id="btn_delete" class="btn btn-warning btn-sm" deleteEmpId="${emp.empId}" deleteEmpName="${emp.empName}">
                                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
                                 删除
                             </button>
-                        </th>
+                        </td>
                     </tr>
                 </c:forEach>
             </table>
@@ -320,11 +327,84 @@
     $(document).on("click","#btn_edit",function () {
         getDepts("#edit_select_depts");
         var empId = $(this).attr("editEmpId");
-        getEmp(empId)
+        getEmp(empId);
+        $("#btn_edit_save_emp").attr("empId",empId);
         $('#myEditModal').modal({
             backdrop: "static"
         })
     })
+
+    <!--保存编辑的员工信息-->
+    $("#btn_edit_save_emp").click(function () {
+        var email = $("#editEmpEmail").val();
+        var regEmail = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
+        if (!regEmail.test(email)) {
+            show_validate_msg($("#inputEmpEmail"), "error", "请输入正确的邮箱");
+            return ;
+        } else {
+            show_validate_msg($("#inputEmpEmail"), "success", "");
+        }
+        $.ajax({
+            url:"${APP_PATH}/emp/"+$("#btn_edit_save_emp").attr("empId"),
+            type:"PUT",
+            data:$("#myEditModal form").serialize(),
+            success:function (result) {
+                if(result.code==0){
+                    //关闭模块框
+                    $('#myModal').modal('hide');
+                }
+            }
+        })
+    })
+    <!--点击删除员工-->
+    $(document).on("click","#btn_delete",function () {
+        var empId = $(this).attr("deleteEmpId");
+        var empName = $(this).attr("deleteEmpName");
+        if(confirm("确认删除"+empName+"吗？")){
+        $.ajax({
+            url:"${APP_PATH}/emp/"+empId,
+            type:"DELETE",
+            success:function (result) {
+                if(result.code==0){
+                    alert(result.msg);
+                }
+            }
+        })
+        }
+    });
+    <!--点击全选员工-->
+    $("#check_all").click(function () {
+       $(".check_item").prop("checked",$(this).prop("checked"));
+    });
+    <!--点击选择单个员工-->
+    // $(document).on("click",".check_item",function () {
+    $(".check_item").click(function () {
+        var flag=$(".check_item:checked").length==$(".check_item").length;
+        $("#check_all").prop("checked",flag);
+    });
+    <!--删除多个员工-->
+    // $(document).on("click",".check_item",function () {
+    $("#emp_delete_all_btn").click(function () {
+        var deleteNams="";
+        var deleteIds="";
+        $.each($(".check_item:checked"),function () {
+            deleteNams+=$(this).attr("empName")+",";
+            deleteIds+=$(this).attr("empId")+"-";
+        })
+        var names=deleteNams.substring(0,deleteNams.length-1);
+        var ids=deleteIds.substring(0,deleteIds.length-1);
+        if(confirm("确定删除【"+names+"】吗？")){
+            $.ajax({
+                url:"${APP_PATH}/emp/"+ids,
+                type:"DELETE",
+                success:function (result) {
+                    if(result.code==0){
+                        alert(result.msg);
+                    }
+                }
+            })
+        }
+    });
 
 </script>
 </body>

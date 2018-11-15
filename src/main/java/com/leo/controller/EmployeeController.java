@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -63,5 +64,28 @@ public class EmployeeController {
     public CommonResult getEmp(@PathVariable("empId") Integer  empId){
         Employee employee=employeeService.getEmp(empId);
         return CommonResult.success().addData("emp", employee);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/emp/{empId}",method = RequestMethod.PUT)
+    public CommonResult updateEmp(Employee  employee){
+        employeeService.update(employee);
+        return CommonResult.success();
+    }
+    @ResponseBody
+    @RequestMapping(value = "/emp/{empIds}",method = RequestMethod.DELETE)
+    public CommonResult deleteEmp(@PathVariable("empIds") String  empIds){
+
+        if(empIds.contains("-")){
+            String[] ids=empIds.split("-");
+            List<Integer> idList=new ArrayList<>();
+            for(String id:ids){
+            idList.add(Integer.parseInt(id));
+            }
+            employeeService.deleteBatch(idList);
+        }else {
+            employeeService.delete(Integer.parseInt(empIds));
+        }
+        return CommonResult.success();
     }
 }
