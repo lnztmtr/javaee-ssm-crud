@@ -23,15 +23,15 @@ public class MapperTest {
 
     @Test
     public void testCRUD() {
-        System.out.println(departmentMapper);
+//        System.out.println(departmentMapper);
 //        departmentMapper.insertSelective(new Department("开发部"));
 //        departmentMapper.insertSelective(new Department("测试部"));
 //        employeeMapper.insertSelective(new Employee(null, "leo", "F", "leo@126.com", 1));
-        EmployeeMapper employeeMapper1=sqlSession.getMapper(EmployeeMapper.class);
-        for(int i=0;i<1000;i++){
-            String name=UUID.randomUUID().toString().substring(0,5)+i;
-            employeeMapper1.insertSelective(new Employee(null, name,
-                    "M", name+"@126.com", 1));
-        }
+//        EmployeeMapper employeeMapper1=sqlSession.getMapper(EmployeeMapper.class);
+//        for(int i=0;i<1000;i++){
+//            String name=UUID.randomUUID().toString().substring(0,5)+i;
+//            employeeMapper1.insertSelective(new Employee(null, name,
+//                    "M", name+"@126.com", 1));
+//        }
     }
 }

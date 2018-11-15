@@ -339,19 +339,19 @@
         var email = $("#editEmpEmail").val();
         var regEmail = /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/;
         if (!regEmail.test(email)) {
-            show_validate_msg($("#inputEmpEmail"), "error", "请输入正确的邮箱");
+            show_validate_msg($("#editEmpEmail"), "error", "请输入正确的邮箱");
             return ;
         } else {
-            show_validate_msg($("#inputEmpEmail"), "success", "");
+            show_validate_msg($("#editEmpEmail"), "success", "");
         }
         $.ajax({
             url:"${APP_PATH}/emp/"+$("#btn_edit_save_emp").attr("empId"),
             type:"PUT",
             data:$("#myEditModal form").serialize(),
             success:function (result) {
-                if(result.code==0){
+                if(result.code == 0){
                     //关闭模块框
-                    $('#myModal').modal('hide');
+                    $('#myEditModal').modal('hide');
                 }
             }
         })
